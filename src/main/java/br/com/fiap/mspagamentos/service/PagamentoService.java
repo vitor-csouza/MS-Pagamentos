@@ -4,8 +4,10 @@ import br.com.fiap.mspagamentos.dto.PagamentoDTO;
 import br.com.fiap.mspagamentos.model.Pagamento;
 import br.com.fiap.mspagamentos.model.Status;
 import br.com.fiap.mspagamentos.repository.PagamentoRepository;
+import br.com.fiap.mspagamentos.service.exception.DatabaseException;
 import br.com.fiap.mspagamentos.service.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,10 +72,13 @@ public class PagamentoService {
 
     @Transactional
     public void delete(Long id){
+        if(!repository.existsById(id)){
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
         try{
             repository.deleteById(id);
-        } catch (EmptyResultDataAccessException e){
-            throw new ResourceNotFoundException("Recurso não encontrado");
+        } catch (DataIntegrityViolationException e){
+            throw new DatabaseException("Recurso não encontrado");
         }
     }
 
