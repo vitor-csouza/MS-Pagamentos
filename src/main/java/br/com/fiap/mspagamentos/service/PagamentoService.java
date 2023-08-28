@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -76,5 +75,29 @@ public class PagamentoService {
         } catch (EmptyResultDataAccessException e){
             throw new ResourceNotFoundException("Recurso não encontrado");
         }
+    }
+
+    @Transactional
+    public void confirmarPagamento(Long id){
+        Optional<Pagamento> pagamento = repository.findById(id);
+
+        if(!pagamento.isPresent()){
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
+
+        pagamento.get().setStatus(Status.CONFIRMADO);
+        repository.save(pagamento.get());
+    }
+
+    @Transactional
+    public void cancelarPagamento(Long id){
+        Optional<Pagamento> pagamento = repository.findById(id);
+
+        if(!pagamento.isPresent()){
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
+
+        pagamento.get().setStatus(Status.CANCELADO);
+        repository.save(pagamento.get());
     }
 }
