@@ -1,6 +1,7 @@
 package br.com.fiap.mspagamentos.service;
 
 import br.com.fiap.mspagamentos.dto.PagamentoDTO;
+import br.com.fiap.mspagamentos.http.PedidoClient;
 import br.com.fiap.mspagamentos.model.Pagamento;
 import br.com.fiap.mspagamentos.model.Status;
 import br.com.fiap.mspagamentos.repository.PagamentoRepository;
@@ -19,6 +20,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class PagamentoService {
+
+    @Autowired
+    private PedidoClient pedidoClient;
 
     @Autowired
     PagamentoRepository repository;
@@ -84,14 +88,25 @@ public class PagamentoService {
 
     @Transactional
     public void confirmarPagamento(Long id){
+        // Recupera o pagamento no DB
         Optional<Pagamento> pagamento = repository.findById(id);
 
+        // Valida se existe pagamento
         if(!pagamento.isPresent()){
             throw new ResourceNotFoundException("Recurso não encontrado");
         }
 
+        // Altera o status do pagamento como confirmado
         pagamento.get().setStatus(Status.CONFIRMADO);
+
+        // Salva a alteração no DB
         repository.save(pagamento.get());
+
+        // Chamamos o PedidoClient para fazer a atualização passando  o ID do pedido
+        // Passamos o ID do pedido e quem tem essa informação é o pagamento.get().getPedidoId()
+        // Esse getter é que possio a informação o pedido
+        // pedidoClient foi injetado na dependência
+        pedidoClient.atualizarPagamentoPedido(pagamento.get().getPedidoId());
     }
 
     @Transactional
